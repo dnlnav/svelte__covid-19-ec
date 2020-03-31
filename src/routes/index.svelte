@@ -1,46 +1,63 @@
-<style>
-	h1, figure, p {
-		text-align: center;
-		margin: 0 auto;
-	}
+<script context="module">
+  import { getHistory } from '../data/api';
 
-	h1 {
-		font-size: 2.8em;
-		text-transform: uppercase;
-		font-weight: 700;
-		margin: 0 0 0.5em 0;
-	}
+  export async function preload() {
+    return {
+      data: await getHistory()
+    };
+  }
+</script>
 
-	figure {
-		margin: 0 0 1em 0;
-	}
+<script>
+  import { onMount } from 'svelte';
+  import Chart from 'chart.js';
+  import { mapDataToTotalCases, mapDataToNewCases } from '../data/mappings';
 
-	img {
-		width: 100%;
-		max-width: 400px;
-		margin: 0 0 1em 0;
-	}
+  export let data;
 
-	p {
-		margin: 1em auto;
-	}
+  let canvas;
 
-	@media (min-width: 480px) {
-		h1 {
-			font-size: 4em;
-		}
-	}
-</style>
+  onMount(() => {
+    const ctx = canvas.getContext('2d');
+
+    console.log(data);
+
+    const myBarChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [
+          {
+            borderColor: 'red',
+            label: 'Número de casos totales',
+            fill: false,
+            data: mapDataToTotalCases(data)
+          },
+          {
+            borderColor: 'blue',
+            label: 'Número de casos nuevos por día',
+            fill: false,
+            data: mapDataToNewCases(data)
+          }
+        ]
+      },
+      options: {
+        scales: {
+          xAxes: [
+            {
+              type: 'time',
+              time: {
+                unit: 'day'
+              }
+            }
+          ]
+        }
+      }
+    });
+  });
+</script>
 
 <svelte:head>
-	<title>Sapper project template</title>
+  <title>Sapper project template</title>
 </svelte:head>
 
-<h1>Great success!</h1>
-
-<figure>
-	<img alt='Borat' src='great-success.png'>
-	<figcaption>HIGH FIVE!</figcaption>
-</figure>
-
-<p><strong>Try editing this file (src/routes/index.svelte) to test live reloading.</strong></p>
+<canvas bind:this="{canvas}"></canvas>
